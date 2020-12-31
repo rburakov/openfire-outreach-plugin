@@ -1,0 +1,240 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+<title>Outreach Plugin Readme</title>
+<style type="text/css">
+/* global font and body settings */
+body {
+    font-size: 100%;
+    background-color: #d3d6d9;
+    padding: 0;
+    margin: 0 0 30px 0;
+}
+
+body, td, th {
+    font-family: arial, helvetica, sans-serif;
+    font-size: 10pt;
+}
+
+pre, tt, code {
+    font-family: courier new, monospace;
+    font-size: 9pt;
+}
+
+#pageContainer {
+    display: block;
+    position: relative;
+    clear: both;
+    background-color: #fff;
+    border: 1px solid #999;
+    padding: 40px;
+    margin: 30px;
+}
+
+#pageHeader {
+    display: block;
+    position: relative;
+    height: 80px;
+    background-color: #e7eaee;
+    border: 1px solid #cccccc;
+    border-bottom: none;
+    margin: 10px 0 0 0;
+}
+
+#pageBody {
+    margin: 0 18px 0 20px;
+}
+
+/* anchors */
+a:link {
+    color: #11568c;
+}
+
+a:visited {
+    color: #571c8d;
+}
+
+a:hover {
+    color: #7a1d42;
+    text-decoration: underline;
+}
+
+a:active {
+    color: #7a1d42;
+}
+
+/* page header elements (logo and navigation) */
+.navigation {
+    display: block;
+    position: relative;
+    height: 20px;
+    background-color: #335588;
+    border: 1px solid #cccccc;
+    border-top: none;
+    color: #ffffff;
+    font-size: 11px;
+    line-height: 18px;
+    padding: 0 0 0 0;
+    margin: 0 0 25px 0;
+    overflow: hidden;
+}
+
+.navigation a {
+    margin: 0 20px 0 20px;
+}
+
+.navigation a:link {
+    color: #ffffff;
+}
+
+.navigation a:visited {
+    color: #ffffff;
+}
+
+.navigation a:hover {
+    color: #ffffff;
+}
+
+.navigation a:active {
+    color: #ffffff;
+}
+
+/* headings */
+h1 {
+    display: block;
+    position: relative;
+    font-size: 1.7em;
+    font-weight: bold;
+    color: #670e15;
+    padding: 0;
+    margin: 30px 0 0 20px;
+}
+
+h2 {
+    font-size: 1.3em;
+    font-weight: bold;
+    margin: 40px 0 6px 0;
+    padding: 0;
+    color: #335588;
+}
+
+h3 {
+    font-size: 1.0em;
+    font-weight: bold;
+    margin: 25px 0 3px 0;
+    padding: 0;
+    color: #334466;
+}
+
+/* general elements */
+p {
+    margin: 0 0 15px 0;
+}
+
+ul {
+    margin: 5px 0 15px 35px;
+}
+
+li {
+    padding-bottom: 4px;
+}
+
+tt {
+    font-family: courier new, monospace;
+    font-weight: bold;
+    color: #060;
+}
+
+hr {
+    display: block;
+    height: 1px;
+    background-color: #999999;
+    border: none;
+    margin: 40px 0 20px 0;
+}
+
+.footer {
+    font-size: 8pt;
+    color: #666;
+    text-align: center;
+    margin-top: 2em;
+    padding-top: 0.5em;
+    border-top: 1px #CCC solid;
+}
+</style>
+</head>
+<body>
+
+<div id="pageContainer">
+
+    <div id="pageHeader">
+        <h1>Outreach Plugin Readme</h1>
+    </div>
+
+    <div id="pageBody">
+        <h2>Overview</h2>
+
+        <p>
+            Openfire plugin extends XEP-0313: Message Archive Management protocol to support Message Correction feature (deleting or editing a sent message) and provides retrieval for all one-to-one and MUC chat archive messages regardless of conversation limits.
+        </p>
+        <br>
+        <p>
+            In order to query archive for messages use XEP-0313 specification entities with qualified name 'urn:xmpp:mam:<strong>2a</strong>' instead of 'urn:xmpp:mam:2'.
+        </p>
+        <br>
+        <p>
+            In order to edit your own message, the requesting entity sends an <iq/> stanza of type "set" to the target entity, containing an <query/> element qualified by the 'jabber:iq:msg-correct' namespace. Attribute 'mid' contains message id, attribute 'ma' specifies edit action. Body element contains edited text.
+        </p>
+        <pre>
+            &#x3C;iq id=&#x22;iq1&#x22; type=&#x22;set&#x22; xmlns=&#x22;jabber:client&#x22;&#x3E;&#x3C;query xmlns=&#x22;jabber:iq:msg-correct&#x22; mid=&#x22;message1&#x22; ma=&#x22;edit&#x22;/&#x3E;&#x3C;body&#x3E;edited text&#x3C;/body&#x3E;&#x3C;/iq&#x3E;
+        </pre>
+        <p>
+            The target entity returns either an IQ-result or an IQ-error. When returning an IQ-result, the target entity sends an <iq/> stanza of type='result' containing a <query/> element with a 'ts' attribute.
+        </p>
+        <pre>
+            &#x3C;iq id=&#x22;iq1&#x22; to=&#x22;romeo@montague.net&#x22; type=&#x22;result&#x22; xmlns=&#x22;jabber:client&#x22;&#x3E;&#x3C;query xmlns=&#x22;jabber:iq:msg-correct&#x22; mid=&#x22;message1&#x22; ma=&#x22;edit&#x22; ts=&#x22;1589364007&#x22;/&#x3E;&#x3C;body&#x3E;edited text&#x3C;/body&#x3E;&#x3C;/iq&#x3E;
+        </pre>
+        <p>
+            All message recipients get an <iq/> stanza without type attribute:
+        </p>
+        <pre>
+            &#x3C;iq id=&#x22;iq1-1&#x22; to=&#x22;juliet@capulet.com&#x22; xmlns=&#x22;jabber:client&#x22;&#x3E;&#x3C;query xmlns=&#x22;jabber:iq:msg-correct&#x22; mid=&#x22;message1&#x22; ma=&#x22;edit&#x22; ts=&#x22;1589364007&#x22;/&#x3E;&#x3C;body&#x3E;edited text&#x3C;/body&#x3E;&#x3C;/iq&#x3E;
+        </pre>
+        <br>
+        <p>
+            In order to delete your own message, the requesting entity sends an <iq/> stanza of type "set" to the target entity, containing an <query/> element qualified by the 'jabber:iq:msg-correct' namespace. Attribute 'mid' contains message id, attribute 'ma' specifies delete action.
+        </p>
+        <pre>
+            &#x3C;iq id=&#x22;iq2&#x22; type=&#x22;set&#x22; xmlns=&#x22;jabber:client&#x22;&#x3E;&#x3C;query xmlns=&#x22;jabber:iq:msg-correct&#x22; mid=&#x22;message2&#x22; ma=&#x22;delete&#x22;/&#x3E;&#x3C;/iq&#x3E;
+        </pre>
+        <p>
+            The target entity returns either an IQ-result or an IQ-error. When returning an IQ-result, the target entity sends an <iq/> stanza of type='result' containing a <query/> element with a 'ts' attribute.
+        </p>
+        <pre>
+            &#x3C;iq id=&#x22;iq2&#x22; to=&#x22;romeo@montague.net&#x22; type=&#x22;result&#x22; xmlns=&#x22;jabber:client&#x22;&#x3E;&#x3C;query xmlns=&#x22;jabber:iq:msg-correct&#x22; mid=&#x22;message2&#x22; ma=&#x22;delete&#x22; ts=&#x22;1589364007&#x22;/&#x3E;&#x3C;/iq&#x3E;
+        </pre>
+        <p>
+            All message recipients get an <iq/> stanza without type attribute:
+        </p>
+        <pre>
+            &#x3C;iq id=&#x22;iq2-1&#x22; to=&#x22;juliet@capulet.com&#x22; xmlns=&#x22;jabber:client&#x22;&#x3E;&#x3C;query xmlns=&#x22;jabber:iq:msg-correct&#x22; mid=&#x22;message2&#x22; ma=&#x22;delete&#x22; ts=&#x22;1589364007&#x22;/&#x3E;&#x3C;/iq&#x3E;
+        </pre>
+        <h2>Installation</h2>
+        <p>
+            MonitoringPlugin should be installed first.
+        </p>
+        <p>
+            Copy outreach.jar into the plugins directory of your Openfire installation. The plugin will then be automatically deployed.
+        </p>
+
+        <h2>Database Schema</h2>
+
+        <p>
+            The <tt>ofMessageArchive</tt> table contains 'deleteDate' and 'editDate' timestamp fields.
+        </p>
+
+    </div>
+
+</div>
+</body>
+</html>

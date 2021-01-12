@@ -31,19 +31,19 @@ public class MessageCorrectPersistenceManager
         "UPDATE ofMessageArchive SET deleteDate = ? " +
             "WHERE fromJID = ? AND messageId = ?";
 
-    public Integer editMessage(String fromJID, String messageId, String body){
+    public Long editMessage(String fromJID, String messageId, String body){
 
         Connection con = null;
         PreparedStatement pstmt = null;
         int rowsUpdated = 0;
-        int ts = toIntExact(new Date().getTime() / 1000);
-        Integer returnTs = null;
+        long ts = new Date().getTime();
+        Long returnTs = null;
 
         try
         {
             con = DbConnectionManager.getConnection();
             pstmt = con.prepareStatement(EDIT_MESSAGE);
-            pstmt.setInt(1, ts);
+            pstmt.setLong(1, ts);
             pstmt.setString(2, body);
             pstmt.setString(3, body);
             pstmt.setString(4, fromJID);
@@ -68,19 +68,19 @@ public class MessageCorrectPersistenceManager
         return returnTs;
     }
 
-    public Integer deleteMessage(String fromJID, String messageId){
+    public Long deleteMessage(String fromJID, String messageId){
 
         Connection con = null;
         PreparedStatement pstmt = null;
         int rowsUpdated = 0;
-        int ts = toIntExact(new Date().getTime() / 1000);
-        Integer returnTs = null;
+        long ts = new Date().getTime();
+        Long returnTs = null;
 
         try
         {
             con = DbConnectionManager.getConnection();
             pstmt = con.prepareStatement(DELETE_MESSAGE);
-            pstmt.setInt(1, ts);
+            pstmt.setLong(1, ts);
             pstmt.setString(2, fromJID);
             pstmt.setString(3, messageId);
             rowsUpdated = pstmt.executeUpdate();

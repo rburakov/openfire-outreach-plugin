@@ -108,8 +108,7 @@ public class MessageArchivePersistenceManager {
 
         startDate = getAuditedStartDate(startDate);
         if (startDate != null) {
-            appendWhere(whereSB, "( ", MESSAGE_SENT_DATE, " >= ?  OR (", MESSAGE_DELETE_DATE, " IS NOT NULL AND ", MESSAGE_DELETE_DATE, " >= ?) OR (", MESSAGE_EDIT_DATE, " IS NOT NULL AND ", MESSAGE_EDIT_DATE, " >= ?)) ");
-            //appendWhere(whereSB, MESSAGE_SENT_DATE, " >= ?");
+            appendWhere(whereSB, "( ", MESSAGE_SENT_DATE, " >= ?  OR ", MESSAGE_DELETE_DATE, " >= ? OR ", MESSAGE_EDIT_DATE, " >= ?) ");
         }
         if (endDate != null) {
             appendWhere(whereSB, MESSAGE_SENT_DATE, " <= ?");
@@ -384,6 +383,8 @@ public class MessageArchivePersistenceManager {
         int parameterIndex = 1;
 
         if (startDate != null) {
+            pstmt.setLong(parameterIndex++, dateToMillis(startDate));
+            pstmt.setLong(parameterIndex++, dateToMillis(startDate));
             pstmt.setLong(parameterIndex++, dateToMillis(startDate));
         }
         if (endDate != null) {

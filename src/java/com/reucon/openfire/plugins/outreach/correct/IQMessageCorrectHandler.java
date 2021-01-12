@@ -41,7 +41,7 @@ public class IQMessageCorrectHandler extends IQHandler implements ServerFeatures
         Element queryElement = packet.getChildElement();
         String messageId = queryElement.attributeValue("mid");
         String messageAction = queryElement.attributeValue("ma");
-        Integer ts = null;
+        Long ts = null;
 
         Log.debug("Processing " + packet.getType() + " request from " + packet.getFrom().toString() + " messageId " + messageId);
 

@@ -11,8 +11,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
 
-import static java.lang.Math.toIntExact;
-
 /**
  * Default implementation of the PersistenceManager interface.
  */
@@ -21,17 +19,15 @@ public class MessageCorrectPersistenceManager
     private static final Logger Log = LoggerFactory.getLogger(OutreachPlugin.class);
 
     private static final String GET_MESSAGE =
-            "SELECT * FROM ofMessageArchive WHERE messageId = ?";
+            "SELECT * FROM ofMessageArchive WHERE fromJID = ? AND stanza LIKE ? LIMIT 1";
 
     private static final String EDIT_MESSAGE =
-            "UPDATE ofMessageArchive SET editDate = ?, stanza = REPLACE(stanza, body, ?), body = ? " +
-                    "WHERE fromJID = ? AND messageId = ?";
+            "UPDATE ofMessageArchive SET editDate = ?, stanza = REPLACE(stanza, body, ?), body = ? WHERE messageID = ?";
 
     private static final String DELETE_MESSAGE =
-        "UPDATE ofMessageArchive SET deleteDate = ? " +
-            "WHERE fromJID = ? AND messageId = ?";
+            "UPDATE ofMessageArchive SET deleteDate = ? WHERE messageID = ? ";
 
-    public Long editMessage(String fromJID, String messageId, String body){
+    public Long editMessage(long id, String body){
 
         Connection con = null;
         PreparedStatement pstmt = null;
@@ -46,20 +42,19 @@ public class MessageCorrectPersistenceManager
             pstmt.setLong(1, ts);
             pstmt.setString(2, body);
             pstmt.setString(3, body);
-            pstmt.setString(4, fromJID);
-            pstmt.setString(5, messageId);
+            pstmt.setString(4, Long.toString(id));
             rowsUpdated = pstmt.executeUpdate();
         }
         catch (SQLException e)
         {
-            Log.error("Unable to edit ofMessageArchive for " + fromJID + " - " + messageId, e);
+            Log.error("Unable to edit ofMessageArchive for " + id, e);
         }
         finally
         {
             DbConnectionManager.closeConnection(pstmt, con);
         }
 
-        // if update did not affect any rows insert a new row
+        // set timestamp only when one row was affected
         if (rowsUpdated == 1)
         {
             returnTs = ts;
@@ -68,7 +63,7 @@ public class MessageCorrectPersistenceManager
         return returnTs;
     }
 
-    public Long deleteMessage(String fromJID, String messageId){
+    public Long deleteMessage(long id){
 
         Connection con = null;
         PreparedStatement pstmt = null;
@@ -81,20 +76,19 @@ public class MessageCorrectPersistenceManager
             con = DbConnectionManager.getConnection();
             pstmt = con.prepareStatement(DELETE_MESSAGE);
             pstmt.setLong(1, ts);
-            pstmt.setString(2, fromJID);
-            pstmt.setString(3, messageId);
+            pstmt.setString(2, Long.toString(id));
             rowsUpdated = pstmt.executeUpdate();
         }
         catch (SQLException e)
         {
-            Log.error("Unable to delete ofMessageArchive for " + fromJID + " - " + messageId, e);
+            Log.error("Unable to delete ofMessageArchive for " + id, e);
         }
         finally
         {
             DbConnectionManager.closeConnection(pstmt, con);
         }
 
-        // if update did not affect any rows insert a new row
+        // set timestamp only when one row was affected
         if (rowsUpdated == 1)
         {
             returnTs = ts;
@@ -103,31 +97,48 @@ public class MessageCorrectPersistenceManager
         return returnTs;
     }
 
-    public String getMessageToJID(String messageId){
+    public GetMessageResult getMessage(String fromJID, String messageStanzaId){
 
         Connection con = null;
         PreparedStatement pstmt = null;
-        String toJid = null;
+        GetMessageResult rm = null;
 
         try
         {
             con = DbConnectionManager.getConnection();
             pstmt = con.prepareStatement(GET_MESSAGE);
-            pstmt.setString(1, messageId);
+            pstmt.setString(1, fromJID);
+            pstmt.setString(2, "%id=\"" + messageStanzaId + "\"%");
             ResultSet rs = pstmt.executeQuery();
             if (rs.next()) {
-                toJid = rs.getString("toJID");
+                long id = rs.getLong( "messageID" );
+                String toJID = rs.getString( "toJID" );
+
+                if (toJID != null) {
+                    rm = new GetMessageResult(id, toJID);
+                }
             }
         }
         catch (SQLException e)
         {
-            Log.error("Unable to get toJID from ofMessageArchive for " + messageId, e);
+            Log.error("Unable to get message from ofMessageArchive for " + messageStanzaId, e);
         }
         finally
         {
             DbConnectionManager.closeConnection(pstmt, con);
         }
 
-        return toJid;
+        return rm;
+    }
+
+    public static class GetMessageResult {
+
+        public long id;
+        public String toJID;
+
+        public GetMessageResult(long id, String toJID){
+            this.id = id;
+            this.toJID = toJID;
+        }
     }
 }

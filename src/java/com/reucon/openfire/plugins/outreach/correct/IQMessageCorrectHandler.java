@@ -39,49 +39,54 @@ public class IQMessageCorrectHandler extends IQHandler implements ServerFeatures
     public IQ handleIQ(IQ packet) throws UnauthorizedException {
 
         Element queryElement = packet.getChildElement();
-        String messageId = queryElement.attributeValue("mid");
+        String messageStanzaId = queryElement.attributeValue("sid");
         String messageAction = queryElement.attributeValue("ma");
         Long ts = null;
 
-        Log.debug("Processing " + packet.getType() + " request from " + packet.getFrom().toString() + " messageId " + messageId);
+        Log.debug("Processing " + packet.getType() + " request from " + packet.getFrom().toString() + " messageId " + messageStanzaId);
 
         IQ reply = IQ.createResultIQ(packet);
         Element query = reply.setChildElement("query", NAMESPACE);
 
-        if (packet.getFrom() != null && packet.getType() != null && packet.getType().toString().equals("set") && messageId != null && messageAction != null) {
+        if (packet.getFrom() != null && packet.getType() != null && packet.getType().toString().equals("set") && messageStanzaId != null && messageAction != null) {
 
             String fromJID = packet.getFrom().toBareJID();
 
-            //case delete
-            if (messageAction.equals("delete")){
-                ts = this.messageCorrectPersistenceManager.deleteMessage(fromJID, messageId);
-            }
+            //get message
+            MessageCorrectPersistenceManager.GetMessageResult rm = this.messageCorrectPersistenceManager.getMessage(fromJID, messageStanzaId);
+            if (rm != null){
 
-            //case edit
-            else if (messageAction.equals("edit")){
-                Element bodyElement = queryElement.element("body");
-                if (bodyElement != null) {
-                    String messageBody = bodyElement.getText();
-                    if (messageBody.length() > 0) {
-                        ts = this.messageCorrectPersistenceManager.editMessage(fromJID, messageId, messageBody);
-                        if (ts != null){
-                            query.addElement("body").setText(messageBody);
+                //case delete
+                if (messageAction.equals("delete")){
+                    ts = this.messageCorrectPersistenceManager.deleteMessage(rm.id);
+                }
+
+                //case edit
+                else if (messageAction.equals("edit")){
+                    Element bodyElement = queryElement.element("body");
+                    if (bodyElement != null) {
+                        String messageBody = bodyElement.getText();
+                        if (messageBody.length() > 0) {
+                            ts = this.messageCorrectPersistenceManager.editMessage(rm.id, messageBody);
+                            if (ts != null){
+                                query.addElement("body").setText(messageBody);
+                            }
                         }
                     }
                 }
-            }
 
-            if (ts != null){
-                query.addAttribute("ts", String.valueOf(ts));
-                query.addAttribute("mid", messageId);
-                query.addAttribute("ma", messageAction);
+                if (ts != null){
+                    query.addAttribute("ts", String.valueOf(ts));
+                    query.addAttribute("sid", messageStanzaId);
+                    query.addAttribute("ma", messageAction);
 
-                //notify all recipients
-                IQ pushIQ = reply.createCopy();
-                pushMessageCorrectIQ(fromJID, messageId, pushIQ);
+                    //notify all recipients
+                    IQ pushIQ = reply.createCopy();
+                    pushMessageCorrectIQ(fromJID, rm.toJID, pushIQ);
 
-                Log.debug("Return IQ result to " + reply.getTo().toString() + ": " + reply.toString());
-                return reply;
+                    Log.debug("Return IQ result to " + reply.getTo().toString() + ": " + reply.toString());
+                    return reply;
+                }
             }
         }
 
@@ -89,10 +94,9 @@ public class IQMessageCorrectHandler extends IQHandler implements ServerFeatures
         return reply;
     }
 
-    public void pushMessageCorrectIQ(String fromJID, String messageId, IQ pushIQ){
+    public void pushMessageCorrectIQ(String fromJID, String toJid, IQ pushIQ){
 
         ArrayList<JID> toJIDs = new ArrayList<>();
-        String toJid = this.messageCorrectPersistenceManager.getMessageToJID(messageId);
         if (toJid != null){
 
             JID toJID = new JID(toJid);
@@ -122,7 +126,6 @@ public class IQMessageCorrectHandler extends IQHandler implements ServerFeatures
 
             if (toJIDs.size() > 0) {
 
-                pushIQ.setType(null);
                 pushIQ.setID(new IQ().getID());
 
                 for (JID pushJID : toJIDs) {

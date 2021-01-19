@@ -150,6 +150,11 @@ public class MessageArchivePersistenceManager {
         }
         Log.debug( "Source: " + source);
 
+        //when select 1 message only (e.g. latest), exclude deleted
+        if (xmppResultSet != null && xmppResultSet.getMax() != null && xmppResultSet.getMax() == 1){
+            appendWhere(whereSB, MESSAGE_DELETE_DATE, " IS NULL ");
+        }
+
         if (whereSB.length() != 0) {
             querySB.append(" AND ").append(whereSB);
         }

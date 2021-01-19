@@ -80,12 +80,15 @@ public class IQMessageCorrectHandler extends IQHandler implements ServerFeatures
                     query.addAttribute("sid", messageStanzaId);
                     query.addAttribute("ma", messageAction);
 
-                    //notify all recipients
+                    //send reply to all resources of the user
+                    Log.debug("Return IQ result to " + fromJID + ": " + reply.toString());
+                    SessionManager.getInstance().userBroadcast(packet.getFrom().getNode(), reply);
+
+                    //send result iq to all recipients
                     IQ pushIQ = reply.createCopy();
                     pushMessageCorrectIQ(fromJID, rm.toJID, pushIQ);
 
-                    Log.debug("Return IQ result to " + reply.getTo().toString() + ": " + reply.toString());
-                    return reply;
+                    return null;
                 }
             }
         }
@@ -126,10 +129,9 @@ public class IQMessageCorrectHandler extends IQHandler implements ServerFeatures
 
             if (toJIDs.size() > 0) {
 
-                pushIQ.setID(new IQ().getID());
-
                 for (JID pushJID : toJIDs) {
                     try {
+                        pushIQ.setID(new IQ().getID());
                         Log.debug("Send message correct push to " + pushJID.toString() + ": " + pushIQ.toString());
                         SessionManager.getInstance().userBroadcast(pushJID.getNode(), pushIQ);
                     } catch (Exception e) {

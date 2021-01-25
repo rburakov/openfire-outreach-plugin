@@ -67,7 +67,7 @@ public class IQMessageCorrectHandler extends IQHandler implements ServerFeatures
                     if (bodyElement != null) {
                         String messageBody = bodyElement.getText();
                         if (messageBody.length() > 0) {
-                            ts = this.messageCorrectPersistenceManager.editMessage(rm.id, messageBody);
+                            ts = this.messageCorrectPersistenceManager.editMessage(rm.id, rm.stanza, messageBody);
                             if (ts != null){
                                 query.addElement("body").setText(messageBody);
                             }

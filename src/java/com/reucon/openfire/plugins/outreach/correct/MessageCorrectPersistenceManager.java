@@ -22,12 +22,12 @@ public class MessageCorrectPersistenceManager
             "SELECT * FROM ofMessageArchive WHERE fromJID = ? AND stanza LIKE ? LIMIT 1";
 
     private static final String EDIT_MESSAGE =
-            "UPDATE ofMessageArchive SET editDate = ?, stanza = REPLACE(stanza, body, ?), body = ? WHERE messageID = ?";
+            "UPDATE ofMessageArchive SET editDate = ?, stanza = ?, body = ? WHERE messageID = ?";
 
     private static final String DELETE_MESSAGE =
             "UPDATE ofMessageArchive SET deleteDate = ? WHERE messageID = ? ";
 
-    public Long editMessage(long id, String body){
+    public Long editMessage(long id, String stanza, String body){
 
         Connection con = null;
         PreparedStatement pstmt = null;
@@ -40,7 +40,7 @@ public class MessageCorrectPersistenceManager
             con = DbConnectionManager.getConnection();
             pstmt = con.prepareStatement(EDIT_MESSAGE);
             pstmt.setLong(1, ts);
-            pstmt.setString(2, body);
+            pstmt.setString(2, stanza.replaceAll("<body>(.+)</body>", "<body>" + body + "</body>"));
             pstmt.setString(3, body);
             pstmt.setString(4, Long.toString(id));
             rowsUpdated = pstmt.executeUpdate();
@@ -113,9 +113,10 @@ public class MessageCorrectPersistenceManager
             if (rs.next()) {
                 long id = rs.getLong( "messageID" );
                 String toJID = rs.getString( "toJID" );
+                String stanza = rs.getString( "stanza" );
 
                 if (toJID != null) {
-                    rm = new GetMessageResult(id, toJID);
+                    rm = new GetMessageResult(id, toJID, stanza);
                 }
             }
         }
@@ -135,10 +136,12 @@ public class MessageCorrectPersistenceManager
 
         public long id;
         public String toJID;
+        public String stanza;
 
-        public GetMessageResult(long id, String toJID){
+        public GetMessageResult(long id, String toJID, String stanza){
             this.id = id;
             this.toJID = toJID;
+            this.stanza = stanza;
         }
     }
 }

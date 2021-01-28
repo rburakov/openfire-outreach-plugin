@@ -13,6 +13,7 @@ import org.jivesoftware.util.JiveConstants;
 import org.jivesoftware.util.JiveGlobals;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.xmpp.forms.DataForm;
 import org.xmpp.packet.JID;
 import org.xmpp.packet.Message;
 
@@ -85,7 +86,7 @@ public class MessageArchivePersistenceManager {
         return result;
     }
 
-    public Collection<ArchivedMessage> findMessages(Date startDate, Date endDate, JID owner, JID with, String query, XmppResultSet xmppResultSet, boolean useStableID) {
+    public Collection<ArchivedMessage> findMessages(Date startDate, Date endDate, JID owner, JID with, String query, XmppResultSet xmppResultSet, boolean useStableID, DataForm dataForm) {
 
         Log.debug( "Finding messages of owner '{}' with start date '{}', end date '{}' with '{}' and resultset '{}', useStableId '{}'.", owner, startDate, endDate, with, xmppResultSet, useStableID );
         if ( query != null ) {
@@ -108,7 +109,12 @@ public class MessageArchivePersistenceManager {
 
         startDate = getAuditedStartDate(startDate);
         if (startDate != null) {
-            appendWhere(whereSB, "( ", MESSAGE_SENT_DATE, " >= ?  OR ", MESSAGE_DELETE_DATE, " >= ? OR ", MESSAGE_EDIT_DATE, " >= ?) ");
+            if(dataForm != null && dataForm.getField("correct") != null) {
+                appendWhere(whereSB, "( ", MESSAGE_SENT_DATE, " >= ?  OR ", MESSAGE_DELETE_DATE, " >= ? OR ", MESSAGE_EDIT_DATE, " >= ?) ");
+            }
+            else{
+                appendWhere(whereSB, "( ", MESSAGE_SENT_DATE, " >= ? AND ? = ?) ");
+            }
         }
         if (endDate != null) {
             appendWhere(whereSB, MESSAGE_SENT_DATE, " <= ?");
@@ -150,8 +156,8 @@ public class MessageArchivePersistenceManager {
         }
         Log.debug( "Source: " + source);
 
-        //when select 1 message only (e.g. latest), exclude deleted
-        if (xmppResultSet != null && xmppResultSet.getMax() != null && xmppResultSet.getMax() == 1){
+        // Ignore deleted messages
+        if(dataForm != null && dataForm.getField("active") != null) {
             appendWhere(whereSB, MESSAGE_DELETE_DATE, " IS NULL ");
         }
 

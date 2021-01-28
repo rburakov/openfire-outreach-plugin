@@ -417,7 +417,8 @@ class IQMessageArchiveHandler extends IQHandler implements
                     withField,
                     textField,
                     queryRequest.getResultSet(),
-                    this.usesUniqueAndStableIDs());
+                    this.usesUniqueAndStableIDs(),
+                    dataForm);
 
             Log.debug("MAM: found: "+(result!=null?String.valueOf(result.size()):"0 (result==null)")+" items");
 

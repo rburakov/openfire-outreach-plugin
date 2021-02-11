@@ -19,6 +19,8 @@ body, td, th {
 pre, tt, code {
     font-family: courier new, monospace;
     font-size: 9pt;
+    white-space: pre-wrap;
+    word-wrap: break-word;
 }
 
 #pageContainer {
@@ -181,6 +183,15 @@ hr {
         <p>
             In order to query archive for messages use XEP-0313 specification entities with qualified name 'urn:xmpp:mam:<strong>2a</strong>' instead of 'urn:xmpp:mam:2'.
         </p>
+        <p>
+            Use 'active' form field to skip deleted messages. Use 'correct' form field to apply editDate/deleteDate for 'start' filter.
+        </p>
+        <pre>
+            &#x3C;query xmlns=&#x22;urn:xmpp:mam:2a&#x22;&#x3E;&#x3C;x type=&#x22;submit&#x22; xmlns=&#x22;jabber:x:data&#x22;&#x3E;&#x3C;field type=&#x22;hidden&#x22; var=&#x22;FORM_TYPE&#x22;&#x3E;&#x3C;value&#x3E;urn:xmpp:mam:2a&#x3C;/value&#x3E;&#x3C;/field&#x3E;&#x3C;field var=&#x22;active&#x22;/&#x3E;&#x3C;field var=&#x22;with&#x22;&#x3E;&#x3C;value&#x3E;romeo@montague.net&#x3C;/value&#x3E;&#x3C;/field&#x3E;&#x3C;/field&#x3E;&#x3C;/x&#x3E;&#x3C;set xmlns=&#x22;http://jabber.org/protocol/rsm&#x22;/&#x3E;&#x3C;/query&#x3E;
+        </pre>
+        <pre>
+            &#x3C;query xmlns=&#x22;urn:xmpp:mam:2a&#x22;&#x3E;&#x3C;x type=&#x22;submit&#x22; xmlns=&#x22;jabber:x:data&#x22;&#x3E;&#x3C;field type=&#x22;hidden&#x22; var=&#x22;FORM_TYPE&#x22;&#x3E;&#x3C;value&#x3E;urn:xmpp:mam:2a&#x3C;/value&#x3E;&#x3C;/field&#x3E;&#x3C;field var=&#x22;correct&#x22;/&#x3E;&#x3C;field var=&#x22;with&#x22;&#x3E;&#x3C;value&#x3E;romeo@montague.net&#x3C;/value&#x3E;&#x3C;/field&#x3E;&#x3C;field var=&#x22;start&#x22;&#x3E;&#x3C;value&#x3E;2021-02-08T10:40:06.000Z&#x3C;/value&#x3E;&#x3C;/field&#x3E;&#x3C;/x&#x3E;&#x3C;set xmlns=&#x22;http://jabber.org/protocol/rsm&#x22;/&#x3E;&#x3C;/query&#x3E;
+        </pre>
         <br>
         <p>
             In order to edit your own message, the requesting entity sends an <iq/> stanza of type "set" to the target entity, containing an <query/> element qualified by the 'jabber:iq:msg-correct' namespace. Attribute 'sid' contains message stanza id, attribute 'ma' specifies edit action. Body element contains edited text.
@@ -189,13 +200,13 @@ hr {
             &#x3C;iq id=&#x22;iq1&#x22; type=&#x22;set&#x22; xmlns=&#x22;jabber:client&#x22;&#x3E;&#x3C;query xmlns=&#x22;jabber:iq:msg-correct&#x22; sid=&#x22;message1&#x22; ma=&#x22;edit&#x22;/&#x3E;&#x3C;body&#x3E;edited text&#x3C;/body&#x3E;&#x3C;/iq&#x3E;
         </pre>
         <p>
-            The target entity returns either an IQ-result or an IQ-error. When returning an IQ-result, the target entity sends an <iq/> stanza of type='result' containing a <query/> element with a 'ts' attribute.
+            The target entity returns either an IQ-result or an IQ-error. When returning an IQ-result, the target entity sends an <iq/> stanza containing a <query/> element with a 'ts' attribute.
         </p>
         <pre>
-            &#x3C;iq id=&#x22;iq1&#x22; to=&#x22;romeo@montague.net&#x22; type=&#x22;result&#x22; xmlns=&#x22;jabber:client&#x22;&#x3E;&#x3C;query xmlns=&#x22;jabber:iq:msg-correct&#x22; sid=&#x22;message1&#x22; ma=&#x22;edit&#x22; ts=&#x22;1589364007122&#x22;/&#x3E;&#x3C;body&#x3E;edited text&#x3C;/body&#x3E;&#x3C;/iq&#x3E;
+            &#x3C;iq id=&#x22;iq1&#x22; to=&#x22;romeo@montague.net&#x22; xmlns=&#x22;jabber:client&#x22;&#x3E;&#x3C;query xmlns=&#x22;jabber:iq:msg-correct&#x22; sid=&#x22;message1&#x22; ma=&#x22;edit&#x22; ts=&#x22;1589364007122&#x22;/&#x3E;&#x3C;body&#x3E;edited text&#x3C;/body&#x3E;&#x3C;/iq&#x3E;
         </pre>
         <p>
-            All message recipients get an <iq/> stanza without type attribute:
+            All message recipients get similar <iq/> stanza:
         </p>
         <pre>
             &#x3C;iq id=&#x22;iq1-1&#x22; to=&#x22;juliet@capulet.com&#x22; xmlns=&#x22;jabber:client&#x22;&#x3E;&#x3C;query xmlns=&#x22;jabber:iq:msg-correct&#x22; sid=&#x22;message1&#x22; ma=&#x22;edit&#x22; ts=&#x22;1589364007122&#x22;/&#x3E;&#x3C;body&#x3E;edited text&#x3C;/body&#x3E;&#x3C;/iq&#x3E;
@@ -208,16 +219,16 @@ hr {
             &#x3C;iq id=&#x22;iq2&#x22; type=&#x22;set&#x22; xmlns=&#x22;jabber:client&#x22;&#x3E;&#x3C;query xmlns=&#x22;jabber:iq:msg-correct&#x22; sid=&#x22;message2&#x22; ma=&#x22;delete&#x22;/&#x3E;&#x3C;/iq&#x3E;
         </pre>
         <p>
-            The target entity returns either an IQ-result or an IQ-error. When returning an IQ-result, the target entity sends an <iq/> stanza of type='result' containing a <query/> element with a 'ts' attribute.
+            The target entity returns either an IQ-result or an IQ-error. When returning an IQ-result, the target entity sends an <iq/> stanza containing a <query/> element with a 'ts' attribute.
         </p>
         <pre>
-            &#x3C;iq id=&#x22;iq2&#x22; to=&#x22;romeo@montague.net&#x22; type=&#x22;result&#x22; xmlns=&#x22;jabber:client&#x22;&#x3E;&#x3C;query xmlns=&#x22;jabber:iq:msg-correct&#x22; sid=&#x22;message2&#x22; ma=&#x22;delete&#x22; ts=&#x22;1589364007122&#x22;/&#x3E;&#x3C;/iq&#x3E;
+            &#x3C;iq id=&#x22;iq2&#x22; to=&#x22;romeo@montague.net&#x22; xmlns=&#x22;jabber:client&#x22;&#x3E;&#x3C;query xmlns=&#x22;jabber:iq:msg-correct&#x22; sid=&#x22;message2&#x22; ma=&#x22;delete&#x22; ts=&#x22;1589364007122&#x22;/&#x3E;&#x3C;/iq&#x3E;
         </pre>
         <p>
-            All message recipients get an <iq/> stanza:
+            All message recipients get similar <iq/> stanza:
         </p>
         <pre>
-            &#x3C;iq id=&#x22;iq2-1&#x22; type=&#x22;result&#x22; to=&#x22;juliet@capulet.com&#x22; xmlns=&#x22;jabber:client&#x22;&#x3E;&#x3C;query xmlns=&#x22;jabber:iq:msg-correct&#x22; sid=&#x22;message2&#x22; ma=&#x22;delete&#x22; ts=&#x22;1589364007122&#x22;/&#x3E;&#x3C;/iq&#x3E;
+            &#x3C;iq id=&#x22;iq2-1&#x22; to=&#x22;juliet@capulet.com&#x22; xmlns=&#x22;jabber:client&#x22;&#x3E;&#x3C;query xmlns=&#x22;jabber:iq:msg-correct&#x22; sid=&#x22;message2&#x22; ma=&#x22;delete&#x22; ts=&#x22;1589364007122&#x22;/&#x3E;&#x3C;/iq&#x3E;
         </pre>
         <h2>Installation</h2>
         <p>

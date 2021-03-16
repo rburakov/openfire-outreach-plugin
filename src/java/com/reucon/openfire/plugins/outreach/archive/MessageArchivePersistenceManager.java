@@ -86,7 +86,7 @@ public class MessageArchivePersistenceManager {
         return result;
     }
 
-    public Collection<ArchivedMessage> findMessages(Date startDate, Date endDate, JID owner, JID with, String query, XmppResultSet xmppResultSet, boolean useStableID, DataForm dataForm) {
+    public Collection<ArchivedMessage> findMessages(Date startDate, Date endDate, JID owner, JID with, String query, XmppResultSet xmppResultSet, boolean useStableID, DataForm dataForm, Boolean flipPage) {
 
         Log.debug( "Finding messages of owner '{}' with start date '{}', end date '{}' with '{}' and resultset '{}', useStableId '{}'.", owner, startDate, endDate, with, xmppResultSet, useStableID );
         if ( query != null ) {
@@ -314,7 +314,12 @@ public class MessageArchivePersistenceManager {
             xmppResultSet.setLast(String.valueOf( archivedMessages.lastKey() ));
         }
 
-        return archivedMessages.values();
+        if (flipPage){
+            return archivedMessages.descendingMap().values();
+        }
+        else{
+            return archivedMessages.values();
+        }
     }
 
     private boolean isOracleDB()

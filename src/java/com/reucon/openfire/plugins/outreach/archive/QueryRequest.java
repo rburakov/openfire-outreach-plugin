@@ -14,6 +14,7 @@ public class QueryRequest {
     private DataForm dataForm;
     private XmppResultSet resultSet;
     private JID archive;
+    private Boolean flipPage = false;
 
     public QueryRequest(Element queryElement, JID archive) {
 
@@ -35,6 +36,10 @@ public class QueryRequest {
             resultSet = new XmppResultSet(setElement);
         }
 
+        if (queryElement.element("flip-page") != null)
+        {
+            flipPage = true;
+        }
     }
 
     public String getQueryid() {
@@ -53,4 +58,7 @@ public class QueryRequest {
         return archive;
     }
 
+    public Boolean getFlipPage() {
+        return flipPage;
+    }
 }

@@ -418,7 +418,8 @@ class IQMessageArchiveHandler extends IQHandler implements
                     textField,
                     queryRequest.getResultSet(),
                     this.usesUniqueAndStableIDs(),
-                    dataForm);
+                    dataForm,
+                    queryRequest.getFlipPage());
 
             Log.debug("MAM: found: "+(result!=null?String.valueOf(result.size()):"0 (result==null)")+" items");
 

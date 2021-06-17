@@ -10,6 +10,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
+import java.util.regex.Matcher;
 
 /**
  * Default implementation of the PersistenceManager interface.
@@ -40,7 +41,7 @@ public class MessageCorrectPersistenceManager
             con = DbConnectionManager.getConnection();
             pstmt = con.prepareStatement(EDIT_MESSAGE);
             pstmt.setLong(1, ts);
-            pstmt.setString(2, stanza.replaceAll("<body>(.+)</body>", "<body>" + body + "</body>"));
+            pstmt.setString(2, stanza.replaceAll("<body>(.+)</body>", "<body>" + Matcher.quoteReplacement(body) + "</body>"));
             pstmt.setString(3, body);
             pstmt.setString(4, Long.toString(id));
             rowsUpdated = pstmt.executeUpdate();

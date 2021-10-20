@@ -1,7 +1,7 @@
 package com.reucon.openfire.plugins.outreach.correct;
 
 import com.reucon.openfire.plugins.outreach.OutreachPlugin;
-import org.dom4j.Element;
+import org.dom4j.*;
 import org.jivesoftware.openfire.IQHandlerInfo;
 import org.jivesoftware.openfire.SessionManager;
 import org.jivesoftware.openfire.XMPPServer;
@@ -67,9 +67,31 @@ public class IQMessageCorrectHandler extends IQHandler implements ServerFeatures
                     if (bodyElement != null) {
                         String messageBody = bodyElement.getText();
                         if (messageBody.length() > 0) {
-                            ts = this.messageCorrectPersistenceManager.editMessage(rm.id, rm.stanza, messageBody);
-                            if (ts != null){
-                                query.addElement("body").setText(messageBody);
+
+                            //parse db message stanza
+                            Document stanza;
+                            try {
+                                stanza = DocumentHelper.parseText(rm.stanza);
+                                stanza.getRootElement().element("body").setText(messageBody);
+                                Element stanzaEncrypted = stanza.getRootElement().element("encrypted");
+                                if (stanzaEncrypted != null) {
+                                    stanzaEncrypted.detach();
+                                }
+
+                                Element encrypted = queryElement.element("encrypted");
+                                if (encrypted != null){
+                                    stanza.getRootElement().add((Element) encrypted.clone());
+                                }
+
+                                ts = this.messageCorrectPersistenceManager.editMessage(rm.id, stanza.getRootElement().asXML(), messageBody);
+                                if (ts != null){
+                                    query.addElement("body").setText(messageBody);
+                                    if (encrypted != null){
+                                        query.add((Element) encrypted.clone());
+                                    }
+                                }
+                            } catch (DocumentException e) {
+                                Log.error("Failed to parse message stanza.", e);
                             }
                         }
                     }
